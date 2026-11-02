@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Zümre Kur{% endblock %}
+
+{% block content %}
+<div class="card-box" style="padding: 18px;">
+    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px;">🏛️ Yeni Zümre Kur</div>
+    <form method="POST">
+        <label><b>Zümre Adı:</b></label><br>
+        <input type="text" name="ad" style="width:100%; padding:8px; margin:6px 0 14px 0; border:1px solid #ffccb3; border-radius:4px; font-family:inherit;" required><br>
+        <label><b>Açıklama:</b></label><br>
+        <textarea name="aciklama" rows="4" style="width:100%; padding:8px; margin:6px 0 18px 0; border:1px solid #ffccb3; border-radius:4px; font-family:inherit;" required></textarea><br>
+        <button type="submit" class="btn-orange">Zümreyi Kur</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}{{ konu['baslik'] }}{% endblock %}
+
+{% block content %}
+<div class="card-box" style="padding: 18px;">
+    <h2 style="margin: 0 0 10px 0; color: #ff5500; font-size: 18px; border-bottom: 2px solid #ff5500; padding-bottom: 8px;">
+        📌 {{ konu['baslik'] }}
+    </h2>
+    <div style="font-size: 12px; color: #666; margin-bottom: 15px;">
+        Yazar: <a href="/profil/{{ konu['yazar'] }}"><b>{{ konu['yazar'] }}</b></a> | Kategori: <b>{{ konu['kategori'] }}</b> | Tarih: {{ konu['tarih'] }}
+    </div>
+
+    <div style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap;">{{ konu['icerik'] }}</div>
+
+    {% if konu['dosya_adi'] %}
+        {% set dosya_uzantisi = konu['dosya_adi'].rsplit('.', 1)[1].lower() %}
+        <div style="background: #fff6f0; border: 1px solid #ffccb3; padding: 12px; margin-top: 15px; border-radius: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <b>📎 Ekli Belge: {{ konu['dosya_adi'] }}</b>
+                <a href="{{ url_for('static', filename='uploads/' + konu['dosya_adi']) }}" class="btn-orange" download>📥 Bilgisayara İndir</a>
+            </div>
+
+            {% if dosya_uzantisi == 'pdf' %}
+                <div style="border: 1px solid #ff5500; border-radius: 4px; overflow: hidden;">
+                    <iframe src="{{ url_for('static', filename='uploads/' + konu['dosya_adi']) }}" width="100%" height="480px" style="border: none;"></iframe>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<div class="card-box" style="padding: 15px;">
+    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:12px;">💬 Tartışma ve Yorumlar ({{ yorumlar|length }})</div>
+    {% for y in yorumlar %}
+        <div style="border-bottom: 1px solid #fff0eb; padding: 10px 0;">
+            <div style="font-size: 12px; color: #555; margin-bottom: 4px;">
+                <b><a href="/profil/{{ y['yazar'] }}">{{ y['yazar'] }}</a></b> &bull; {{ y['tarih'][:16] }}
+            </div>
+            <div style="font-size: 13px;">{{ y['yorum'] }}</div>
+        </div>
+    {% else %}
+        <div style="color: #666; font-size: 13px;">Henüz yorum yapılmamış. İlk yorumu sen yaz!</div>
+    {% endfor %}
+
+    <div style="margin-top: 18px;">
+        {% if session.get('kullanici_adi') %}
+            <form action="/konu/{{ konu['id'] }}" method="POST">
+                <textarea name="yorum" rows="3" style="width: 100%; border: 1px solid #ffccb3; padding: 8px; font-family: inherit; border-radius: 4px;" placeholder="Düşüncelerini ve yorumunu yaz..." required></textarea><br><br>
+                <button type="submit" class="btn-orange">Yorum Gönder</button>
+            </form>
+        {% else %}
+            <p style="font-size: 13px;">Yorum yapmak için <a href="/giris" style="color:#ff5500; font-weight:bold;">Giriş Yapın</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

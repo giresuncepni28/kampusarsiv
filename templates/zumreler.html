@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Zümreler{% endblock %}
+
+{% block content %}
+<div class="card-box" style="padding: 18px;">
+    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px;">👥 Zümreler ve Çalışma Grupları</div>
+    <a href="/zumre_olustur" class="btn-orange">+ Yeni Zümre Kur</a><br><br>
+    <table class="site-table">
+        {% for z in zumreler %}
+        <tr>
+            <td><b>🏛️ {{ z['ad'] }}</b> &bull; {{ z['aciklama'] }} <span style="color:#888; font-size:12px;">(Kurucu: {{ z['kurucu'] }})</span></td>
+        </tr>
+        {% else %}
+        <tr><td>Henüz kurulmuş zümre yok. İlk zümreyi sen oluştur!</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Kayıt Ol{% endblock %}
+
+{% block content %}
+<div class="card-box" style="padding: 20px; max-width: 420px; margin: 0 auto;">
+    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px;">📝 Kayıt Ol</div>
+    <form method="POST">
+        <label><b>Kullanıcı Adı:</b></label><br>
+        <input type="text" name="kullanici_adi" style="width: 100%; padding: 8px; margin: 6px 0 14px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;" required><br>
+        
+        <label><b>Şifre:</b></label><br>
+        <input type="password" name="sifre" style="width: 100%; padding: 8px; margin: 6px 0 14px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;" required><br>
+        
+        <label><b>Rol:</b></label><br>
+        <select name="rol" style="width: 100%; padding: 8px; margin: 6px 0 18px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;">
+            <option value="Öğrenci">Öğrenci</option>
+            <option value="Öğretmen">Öğretmen</option>
+            <option value="Mezun">Mezun</option>
+            <option value="Admin">Admin</option>
+        </select><br>
+        
+        <button type="submit" class="btn-orange" style="width: 100%;">Hesabı Oluştur</button>
+    </form>
+</div>
+{% endblock %}

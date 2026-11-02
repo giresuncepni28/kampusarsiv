@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Yeni Konu Aç{% endblock %}
+
+{% block content %}
+<div class="card-box" style="padding: 18px;">
+    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px;">✍️ Yeni Konu Aç ve PDF Yükle</div>
+    <form method="POST" enctype="multipart/form-data">
+        <label><b>Konu Başlığı:</b></label><br>
+        <input type="text" name="baslik" style="width: 100%; padding: 8px; margin: 6px 0 14px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;" required><br>
+
+        <label><b>Kategori:</b></label><br>
+        <select name="kategori" style="width: 100%; padding: 8px; margin: 6px 0 14px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;">
+            <option value="Ders Notları">Ders Notları</option>
+            <option value="Yazılı Soruları">Yazılı Soruları</option>
+            <option value="ÖSYM & Sınavlar">ÖSYM & Sınavlar</option>
+            <option value="Bilişim & Kod">Bilişim & Kodlama</option>
+            <option value="Kantin">Kantin Sohbetleri</option>
+        </select><br>
+
+        <label><b>Konu İçeriği:</b></label><br>
+        <textarea name="icerik" rows="6" style="width: 100%; padding: 8px; margin: 6px 0 14px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;" required></textarea><br>
+
+        <label><b>Belge Ekleyin (.pdf, .doc, .png):</b></label><br>
+        <input type="file" name="dosya" style="margin: 6px 0 18px 0;"><br>
+
+        <button type="submit" class="btn-orange">Konuyu Yayınla</button>
+    </form>
+</div>
+{% endblock %}

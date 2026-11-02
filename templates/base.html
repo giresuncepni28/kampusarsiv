@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}KampüsArşiv{% endblock %} - Öğrenci Sosyal Ağ Portalı</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #fff6f0;
+            font-family: "Frutiger", "Frutiger Linotype", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px 0;
+            color: #2b2b2b;
+        }
+        .wrapper {
+            width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+        }
+        .main-column { width: 700px; }
+        .side-column { width: 280px; }
+
+        .card-box {
+            background: #ffffff;
+            border-radius: 6px;
+            border: 1px solid #ffccb3;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(255, 102, 0, 0.05);
+        }
+        .card-header-light {
+            background: #ffffff;
+            color: #ff5500;
+            border-bottom: 2px solid #ff5500;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 10px 14px;
+            letter-spacing: -0.2px;
+        }
+
+        .logo-box {
+            background: linear-gradient(135deg, #ff5500, #ff7722);
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            font-size: 32px;
+            font-weight: 700;
+            border-radius: 6px 6px 0 0;
+            font-family: "Frutiger", "Segoe UI", sans-serif;
+            letter-spacing: -0.5px;
+        }
+        .nav-buttons {
+            display: flex;
+            background: #ffffff;
+            border-bottom: 2px solid #ff5500;
+        }
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 12px 6px;
+            border-right: 1px solid #ffe6de;
+            color: #ff5500;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .nav-item:hover { background: #fff0eb; }
+        .nav-item:last-child { border-right: none; }
+
+        .grid-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 12px;
+            background: #ffffff;
+        }
+        .btn-grid {
+            background: #ffffff;
+            border: 1px solid #ffaa80;
+            color: #e64a00;
+            padding: 10px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .btn-grid:hover { background: #ff5500; color: #ffffff; border-color: #ff5500; }
+
+        .auth-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .btn-side {
+            background: #ffffff;
+            border: 1px solid #ffaa80;
+            color: #e64a00;
+            padding: 10px;
+            font-weight: 700;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .btn-side:hover { background: #fff0eb; }
+
+        .site-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .site-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #fff0eb;
+            font-size: 13px;
+        }
+        .site-table tr:hover { background: #fff9f5; }
+        .table-link { color: #e64a00; text-decoration: none; font-weight: 600; }
+        .table-link:hover { text-decoration: underline; color: #ff5500; }
+        .author-tag { color: #888; font-size: 12px; float: right; }
+
+        .alert { padding: 10px 14px; margin-bottom: 12px; border-radius: 4px; font-weight: 600; font-size: 13px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+        .btn-orange { background: #ff5500; color: #ffffff; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-block; }
+        .btn-orange:hover { background: #e64a00; }
+        
+        .avatar-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ff5500;
+        }
+
+        .footer { text-align: center; color: #cc4400; font-size: 12px; margin-top: 20px; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <!-- SOL SÜTUN -->
+    <div class="main-column">
+        <div class="card-box" style="margin-bottom: 12px;">
+            <div class="logo-box">KampüsArşiv</div>
+            <div class="nav-buttons">
+                <a href="/" class="nav-item">🏠 Ana Sayfa</a>
+                <a href="/?kategori=Ders Notları" class="nav-item">📂 Ders Notları</a>
+                <a href="/?kategori=Yazılı Soruları" class="nav-item">📝 Yazılı Soruları</a>
+                <a href="/zumreler" class="nav-item">👥 Zümreler</a>
+            </div>
+        </div>
+
+        <div class="card-box" style="padding: 4px;">
+            <div class="grid-buttons">
+                <a href="/yeni" class="btn-grid">✍️ Yeni Konu Aç & PDF Yükle</a>
+                <a href="/zumreler" class="btn-grid">🏛️ Zümre Odaları & Gruplar</a>
+                <a href="/?kategori=ÖSYM & Sınavlar" class="btn-grid">🎯 ÖSYM & Sınavlar</a>
+                <a href="/?kategori=Bilişim & Kod" class="btn-grid">💻 Bilişim & Kodlama</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- SAĞ SÜTUN -->
+    <div class="side-column">
+        <div class="auth-btn-group">
+            {% if session.get('kullanici_adi') %}
+                <a href="/profil/{{ session['kullanici_adi'] }}" class="btn-side" style="background:#fff0eb;">👤 Profilim ({{ session['kullanici_adi'] }})</a>
+                <a href="/profil_duzenle" class="btn-side" style="background:#e6f7ff; color:#006699; border-color:#91d5ff;">✏️ Profil & Fotoğraf Düzenle</a>
+                {% if session.get('rol') == 'Admin' %}
+                    <a href="/admin" class="btn-side" style="background:#fff3cd; color:#856404; border-color:#ffeeba;">⚙️ Admin Paneli</a>
+                {% endif %}
+                <a href="/cikis" class="btn-side">🚪 Çıkış Yap</a>
+            {% else %}
+                <a href="/giris" class="btn-side">🔑 Giriş Yap</a>
+                <a href="/kayitol" class="btn-side">📝 Kayıt Ol</a>
+            {% endif %}
+        </div>
+
+        <div class="card-box">
+            <div class="card-header-light">📌 Son Paylaşılan Konular</div>
+            <table class="site-table">
+                {% for k in son_100 %}
+                <tr>
+                    <td>
+                        <a href="/konu/{{ k['id'] }}" class="table-link">{{ k['baslik'][:30] }}...</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td>Henüz konu açılmadı.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="card-box">
+            <div class="card-header-light">📄 Ekli PDF Dosyaları</div>
+            <table class="site-table">
+                {% for d in son_dosyalar %}
+                <tr>
+                    <td>
+                        <a href="/konu/{{ d['id'] }}" class="table-link">{{ d['baslik'][:30] }}...</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td>Ekli dosya yok.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    KampüsArşiv © 2026 | Bağımsız Öğrenci ve Eğitim Belge Paylaşım Portalı
+</div>
+
+</body>
+</html>

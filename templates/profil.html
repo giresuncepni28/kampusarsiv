@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ user['kullanici_adi'] if user else 'Profil' }} Profili{% endblock %}
+
+{% block content %}
+{% if user %}
+<div class="card-box" style="padding: 18px;">
+    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+        <span>👤 Öğrenci Kartı: {{ user['kullanici_adi'] }}</span>
+        {% if session.get('kullanici_adi') == user['kullanici_adi'] %}
+            <a href="/profil_duzenle" class="btn-orange" style="font-size:11px; padding:4px 8px;">✏️ Düzenle</a>
+        {% endif %}
+    </div>
+    
+    <div style="display:flex; gap:20px; align-items:flex-start;">
+        <div>
+            {% if user['profil_foto'] and user['profil_foto'] != 'default_avatar.png' %}
+                <img src="{{ url_for('static', filename='avatars/' + user['profil_foto']) }}" class="avatar-img" style="width:90px; height:90px;">
+            {% else %}
+                <div style="width:90px; height:90px; border-radius:50%; background:#ffaa80; color:#fff; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:bold;">
+                    {{ user['kullanici_adi'][0]|upper }}
+                </div>
+            {% endif %}
+        </div>
+        <div style="font-size:13px; line-height:1.8; flex:1;">
+            <div><b>Kullanıcı Adı:</b> {{ user['kullanici_adi'] }}</div>
+            <div><b>Rol:</b> {{ user['rol'] }}</div>
+            <div><b>Rütbe:</b> <span style="color:#ff5500; font-weight:bold;">{{ rutbe }}</span></div>
+            <div><b>İtibar Puanı:</b> ⭐ {{ puan }}</div>
+            <div><b>Biyografi:</b> {{ user['biyografi'] }}</div>
+        </div>
+    </div>
+
+    {% if session.get('kullanici_adi') and session.get('kullanici_adi') != user['kullanici_adi'] %}
+        <br><a href="/dm/{{ user['kullanici_adi'] }}" class="btn-orange">💬 Özel Mesaj (DM) Gönder</a>
+    {% endif %}
+</div>
+
+<div class="card-box" style="padding: 15px;">
+    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:12px;">📂 {{ user['kullanici_adi'] }} Tarafından Paylaşılan Konular</div>
+    <table class="site-table">
+        {% for k in konular %}
+        <tr>
+            <td>
+                💬 <a href="/konu/{{ k['id'] }}" class="table-link">{{ k['baslik'] }}</a>
+                <span class="author-tag">{{ k['tarih'][:16] }}</span>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td>Henüz paylaştığı bir konu bulunmuyor.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% else %}
+<div class="card-box" style="padding: 20px; text-align: center;">
+    <p>Kullanıcı bulunamadı.</p>
+    <a href="/" class="btn-orange">Ana Sayfaya Dön</a>
+</div>
+{% endif %}
+{% endblock %}

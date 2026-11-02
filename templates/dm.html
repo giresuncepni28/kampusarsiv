@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Mesajlaşma{% endblock %}
+
+{% block content %}
+<div class="card-box" style="padding: 18px;">
+    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px;">✉️ {{ alici }} ile Özel Mesaj Sohbeti</div>
+    <div style="height: 280px; overflow-y: scroll; border:1px solid #ffccb3; padding:12px; margin-bottom:15px; background:#fff9f5; border-radius:4px;">
+        {% for m in mesajlar %}
+            <div style="margin-bottom:8px;"><b>{{ m['gonderen'] }}:</b> {{ m['mesaj'] }}</div>
+        {% endfor %}
+    </div>
+    <form method="POST">
+        <textarea name="mesaj" rows="3" style="width:100%; padding:8px; border:1px solid #ffccb3; border-radius:4px; font-family:inherit;" placeholder="Mesajını yaz..." required></textarea><br><br>
+        <button type="submit" class="btn-orange">Mesajı Gönder</button>
+    </form>
+</div>
+{% endblock %}
