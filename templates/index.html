@@ -4,19 +4,7 @@
 {% block content %}
 <div class="box" style="text-align: center; padding: 30px;">
     <h2 style="color: #e65c00; margin-top: 0;">Okul Ders Notları, Video Arşivi & Zümre Platformu</h2>
-    <p style="color: #666;">Gerçek dosya/PDF yükleme, YouTube benzeri video anlatım kütüphanesi ve resmi MEB haber akışı.</p>
-</div>
-
-<div class="box">
-    <h3 style="color: #e65c00; border-bottom: 2px solid #fee2e2; padding-bottom: 6px;">📰 MEB Resmi Duyurular & Gündem</h3>
-    <ul style="padding-left: 20px;">
-        {% for h in haberler %}
-            <li style="margin-bottom: 10px;">
-                <a href="{{ h.link }}" target="_blank" style="font-weight: bold; color: #2b6cb0; text-decoration: none;">{{ h.baslik }}</a>
-                <span style="font-size: 0.8rem; color: #888; margin-left: 8px;">({{ h.tarih }})</span>
-            </li>
-        {% endfor %}
-    </ul>
+    <p style="color: #666;">Dosya/PDF yükleme, video anlatım kütüphanesi ve zümre içi paylaşımlar.</p>
 </div>
 
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">

@@ -1,13 +1,11 @@
 import os
 import sqlite3
-import urllib.request
-import xml.etree.ElementTree as ET
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = 'kampusarsiv_gizli_anahtar_v8'
+app.secret_key = 'kampusarsiv_kalici_hafiza_v9'
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'mp4', 'mov', 'avi'}
@@ -16,6 +14,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'dosyalar'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'videolar'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'resimler'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'avatarlar'), exist_ok=True)
 
 DATABASE = 'database.db'
 
@@ -23,12 +22,13 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(DATABASE, timeout=10)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
     conn = get_db_connection()
+    # Kalıcı Hafıza Tabloları
     conn.execute('''
         CREATE TABLE IF NOT EXISTS kullanicilar (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,7 @@ def init_db():
             sifre TEXT NOT NULL,
             rol TEXT NOT NULL DEFAULT 'Öğrenci',
             bio TEXT DEFAULT 'Henüz biyografi eklenmedi.',
-            avatar TEXT DEFAULT 'https://api.dicebear.com/7.x/bottts/svg?seed=kampus'
+            avatar TEXT DEFAULT '/static/uploads/avatarlar/default.png'
         )
     ''')
     
@@ -119,6 +119,7 @@ def init_db():
         )
     ''')
 
+    # Sabit Admin Hesabı Kalıcılığı
     admin_user = conn.execute("SELECT * FROM kullanicilar WHERE kullanici_adi = ?", ('yigittalhaozer',)).fetchone()
     if not admin_user:
         hashed_sifre = generate_password_hash('talha333')
@@ -130,39 +131,13 @@ def init_db():
 
 init_db()
 
-def gercek_meb_haberlerini_cek():
-    haberler = []
-    try:
-        url = "https://www.meb.gov.tr/baglantilar/rss/rss.xml"
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=4) as response:
-            xml_data = response.read()
-            root = ET.fromstring(xml_data)
-            for idx, item in enumerate(root.findall('./channel/item')[:5]):
-                baslik = item.find('title').text if item.find('title') is not None else "MEB Duyurusu"
-                link = item.find('link').text if item.find('link') is not None else "https://www.meb.gov.tr"
-                tarih = item.find('pubDate').text if item.find('pubDate') is not None else "Güncel"
-                haberler.append({
-                    'id': idx + 1,
-                    'baslik': baslik,
-                    'link': link,
-                    'tarih': tarih[:16]
-                })
-    except Exception:
-        haberler = [
-            {'id': 1, 'baslik': 'Milli Eğitim Bakanlığı Resmi Duyurular ve Basın Açıklamaları', 'link': 'https://www.meb.gov.tr', 'tarih': 'Resmi Kaynak'},
-            {'id': 2, 'baslik': 'MEB Eğitim Takvimi ve Sınav Uygulama Esasları', 'link': 'https://www.meb.gov.tr', 'tarih': 'Resmi Kaynak'}
-        ]
-    return haberler
-
 @app.route('/')
 def index():
-    haberler = gercek_meb_haberlerini_cek()
     conn = get_db_connection()
-    son_konular = conn.execute("SELECT * FROM forum_konulari ORDER BY id DESC LIMIT 4").fetchall()
-    son_videolar = conn.execute("SELECT * FROM videolar ORDER BY id DESC LIMIT 3").fetchall()
+    son_konular = conn.execute("SELECT * FROM forum_konulari ORDER BY id DESC LIMIT 5").fetchall()
+    son_videolar = conn.execute("SELECT * FROM videolar ORDER BY id DESC LIMIT 4").fetchall()
     conn.close()
-    return render_template('index.html', haberler=haberler, son_konular=son_konular, son_videolar=son_videolar)
+    return render_template('index.html', son_konular=son_konular, son_videolar=son_videolar)
 
 @app.route('/kayitol', methods=['GET', 'POST'])
 def kayitol():
@@ -275,8 +250,20 @@ def profil_duzenle():
     conn = get_db_connection()
     if request.method == 'POST':
         bio = request.form.get('bio', '').strip()
-        avatar = request.form.get('avatar', '').strip()
-        conn.execute("UPDATE kullanicilar SET bio = ?, avatar = ? WHERE id = ?", (bio, avatar, session['user_id']))
+        avatar_dosya = request.files.get('avatar_dosya')
+        
+        avatar_yolu = None
+        if avatar_dosya and allowed_file(avatar_dosya.filename):
+            filename = secure_filename(avatar_dosya.filename)
+            dosya_yolu = os.path.join(app.config['UPLOAD_FOLDER'], 'avatarlar', filename)
+            avatar_dosya.save(dosya_yolu)
+            avatar_yolu = f'/static/uploads/avatarlar/{filename}'
+            
+        if avatar_yolu:
+            conn.execute("UPDATE kullanicilar SET bio = ?, avatar = ? WHERE id = ?", (bio, avatar_yolu, session['user_id']))
+        else:
+            conn.execute("UPDATE kullanicilar SET bio = ? WHERE id = ?", (bio, session['user_id']))
+            
         conn.commit()
         flash('Profil güncellendi!', 'success')
         

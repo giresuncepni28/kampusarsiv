@@ -4,7 +4,7 @@
 {% block content %}
 <div class="box" style="max-width: 600px; margin: 0 auto;">
     <div style="display: flex; align-items: center; gap: 20px; border-bottom: 2px solid #fee2e2; padding-bottom: 15px; margin-bottom: 15px;">
-        <img src="{{ hedef_user.avatar }}" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #e65c00;">
+        <img src="{{ hedef_user.avatar }}" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #e65c00; object-fit: cover;">
         <div style="flex: 1;">
             <h2 style="color: #e65c00; margin: 0;">{{ hedef_user.kullanici_adi }}</h2>
             <p style="color: #666; font-size: 0.9rem; margin: 4px 0;">Rol: <b>{{ hedef_user.rol }}</b></p>

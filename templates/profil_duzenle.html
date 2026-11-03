@@ -4,9 +4,9 @@
 {% block content %}
 <div class="box" style="max-width: 450px; margin: 0 auto;">
     <h2 style="color: #e65c00; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">✏️ Profili Düzenle</h2>
-    <form method="POST">
-        <label><b>Avatar URL:</b></label><br>
-        <input type="text" name="avatar" value="{{ user.avatar }}" style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px;"><br>
+    <form method="POST" enctype="multipart/form-data">
+        <label><b>Profil Fotoğrafı Seç (Bilgisayardan):</b></label><br>
+        <input type="file" name="avatar_dosya" accept="image/*" style="width: 100%; margin: 4px 0 12px 0;"><br>
 
         <label><b>Biyografi:</b></label><br>
         <textarea name="bio" rows="3" style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;">{{ user.bio }}</textarea><br>
