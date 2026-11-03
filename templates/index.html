@@ -1,27 +1,33 @@
 {% extends 'base.html' %}
-{% block title %}Ana Sayfa{% endblock %}
+{% block title %}Ana Sayfa - KampüsArşiv{% endblock %}
 
 {% block content %}
-<div class="card-box">
-    <div class="card-header-light">💬 Son Konular ve Paylaşılan Belgeler ({{ aktif_kategori }})</div>
-    <table class="site-table">
-        {% if konular %}
-            {% for konu in konular %}
-            <tr>
-                <td>
-                    💬 <a href="/konu/{{ konu['id'] }}" class="table-link">{{ konu['baslik'] }}</a>
-                    {% if konu['dosya_adi'] %}
-                        <span style="color: #ff5500; font-size: 11px; font-weight: bold;">[PDF Ekli]</span>
-                    {% endif %}
-                    <span class="author-tag">&raquo; <a href="/profil/{{ konu['yazar'] }}" style="color:#666;">{{ konu['yazar'] }}</a></span>
-                </td>
-            </tr>
-            {% endfor %}
-        {% else %}
-            <tr>
-                <td style="text-align: center; padding: 20px; color: #666;">Bu kategoride henüz yayınlanmış konu bulunmuyor. İlk paylaşımı sen yap!</td>
-            </tr>
-        {% endif %}
-    </table>
+<div class="card" style="text-align: center; padding: 40px 20px;">
+    <h1 style="color: #ff6600; margin-bottom: 12px; font-size: 2.2rem;">KampüsArşiv Eğitim Platformu</h1>
+    <p style="font-size: 1.1rem; color: #555; max-width: 700px; margin: 0 auto 25px auto;">Okul ders notları, zümre sohbetleri, yapay zeka destekli sınav aracı ve MEB güncel eğitim haberleri tek bir çatı altında.</p>
+    {% if not session.get('user_id') %}
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <a href="{{ url_for('kayitol') }}" class="btn">Hemen Kayıt Ol</a>
+            <a href="{{ url_for('giris') }}" class="btn" style="background: #2b6cb0;">Giriş Yap</a>
+        </div>
+    {% else %}
+        <a href="{{ url_for('zumreler') }}" class="btn">💬 Zümre Sohbetlerine Katıl</a>
+    {% endif %}
+</div>
+
+<!-- MEB Güncel Haberler Sekmesi -->
+<div class="card">
+    <h3 style="color: #ff6600; margin-bottom: 15px; border-bottom: 2px solid #ffd8bd; padding-bottom: 8px;">📰 MEB ve Eğitim Gündem Haberleri</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+        {% for haber in haberler %}
+            <div style="background: #fffaf5; border: 1px solid #ffd8bd; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <span style="font-size: 0.75rem; color: #888; font-weight: 700;">{{ haber.tarih }}</span>
+                    <h4 style="font-size: 1rem; color: #2d3748; margin: 6px 0 10px 0;">{{ haber.baslik }}</h4>
+                </div>
+                <a href="{{ haber.link }}" target="_blank" style="color: #ff6600; font-weight: 700; text-decoration: none; font-size: 0.9rem;">Haberi Oku →</a>
+            </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

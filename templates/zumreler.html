@@ -1,18 +1,35 @@
 {% extends 'base.html' %}
-{% block title %}Zümreler{% endblock %}
+{% block title %}Zümreler & Sohbet - KampüsArşiv{% endblock %}
 
 {% block content %}
-<div class="card-box" style="padding: 18px;">
-    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px;">👥 Zümreler ve Çalışma Grupları</div>
-    <a href="/zumre_olustur" class="btn-orange">+ Yeni Zümre Kur</a><br><br>
-    <table class="site-table">
-        {% for z in zumreler %}
-        <tr>
-            <td><b>🏛️ {{ z['ad'] }}</b> &bull; {{ z['aciklama'] }} <span style="color:#888; font-size:12px;">(Kurucu: {{ z['kurucu'] }})</span></td>
-        </tr>
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ffd8bd; padding-bottom: 12px;">
+        <div>
+            <h2 style="color: #ff6600;">💬 Eğitim Zümreleri & İletişim</h2>
+            <p style="color: #666; font-size: 0.95rem; margin-top: 4px;">Branş zümrelerine katılarak öğretmen ve öğrencilerle ortak paylaşımlar yapın.</p>
+        </div>
+        {% if session.get('rol') in ['Öğretmen', 'Admin'] %}
+            <a href="{{ url_for('zumre_olustur') }}" class="btn">+ Yeni Zümre Oluştur</a>
+        {% endif %}
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        {% if zumreler %}
+            {% for z in zumreler %}
+                <div style="background: #fffaf5; border: 1px solid #ffd8bd; padding: 20px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="color: #ff6600; margin-bottom: 8px;">📚 {{ z.baslik }}</h3>
+                        <p style="color: #555; font-size: 0.95rem; margin-bottom: 15px;">{{ z.aciklama }}</p>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 12px;">
+                        <span style="font-size: 0.85rem; color: #888;">Kurucu: <b>{{ z.olusturan }}</b></span>
+                        <a href="{{ url_for('zumre_detay', zumre_id=z.id) }}" class="btn" style="padding: 6px 14px; font-size: 0.9rem;">Sohbete Katıl →</a>
+                    </div>
+                </div>
+            {% endfor %}
         {% else %}
-        <tr><td>Henüz kurulmuş zümre yok. İlk zümreyi sen oluştur!</td></tr>
-        {% endfor %}
-    </table>
+            <p style="grid-column: span 3; text-align: center; color: #888; padding: 40px;">Henüz aktif bir zümre bulunmuyor.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Yapay Zeka Yazılı Sihirbazı - KampüsArşiv{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h2 style="color: #ff6600; margin-bottom: 8px;">✨ Yapay Zeka Destekli Yazılı & Soru Sihirbazı</h2>
+    <p style="color: #666; font-size: 0.95rem; margin-bottom: 20px;">Ders seviyesini seçerek anında özgün yazılı soruları oluşturabilir, çıktısını alabilirsiniz.</p>
+    
+    <form method="POST" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div>
+            <label style="font-weight: 600; font-size: 0.9rem;">Ders Seçimi:</label>
+            <select name="ders" style="width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ffd8bd; border-radius: 6px;">
+                <option value="Matematik">Matematik</option>
+                <option value="Fizik">Fizik</option>
+                <option value="Edebiyat">Türk Dili ve Edebiyatı</option>
+                <option value="Tarih">Tarih</option>
+                <option value="İngilizce">İngilizce</option>
+            </select>
+        </div>
+        <div>
+            <label style="font-weight: 600; font-size: 0.9rem;">Sınıf Seviyesi:</label>
+            <select name="seviye" style="width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ffd8bd; border-radius: 6px;">
+                <option value="9. Sınıf">9. Sınıf</option>
+                <option value="10. Sınıf">10. Sınıf</option>
+                <option value="11. Sınıf">11. Sınıf</option>
+                <option value="12. Sınıf">12. Sınıf</option>
+            </select>
+        </div>
+        <div>
+            <label style="font-weight: 600; font-size: 0.9rem;">Zorluk Derecesi:</label>
+            <select name="zorluk" style="width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ffd8bd; border-radius: 6px;">
+                <option value="Kolay">Kolay</option>
+                <option value="Orta">Orta</option>
+                <option value="Zor / Sınav Tarzı">Zor / Sınav Tarzı</option>
+            </select>
+        </div>
+        <div style="grid-column: span 3;">
+            <button type="submit" class="btn" style="width: 100%; padding: 12px; font-size: 1rem;">🤖 Yapay Zeka ile Soru Paketi Üret</button>
+        </div>
+    </form>
+
+    {% if soru_paketi %}
+        <div style="background: #fffaf5; border: 2px dashed #ff6600; padding: 20px; border-radius: 8px; margin-top: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: #ff6600;">📋 {{ soru_paketi.ders }} - {{ soru_paketi.seviye }} Yazılı Örneği</h3>
+                <button onclick="window.print()" class="btn" style="background: #2b6cb0; font-size: 0.85rem;">🖨️ PDF / Yazdır</button>
+            </div>
+            <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px;">Zorluk: <b>{{ soru_paketi.zorluk }}</b> | Oluşturan: <b>KampüsArşiv AI Engine</b></p>
+            <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 12px;">
+                {% for soru in soru_paketi.sorular %}
+                    <li style="font-weight: 600; color: #2d3748;">{{ soru }}<div style="border-bottom: 1px dotted #ccc; height: 35px; margin-top: 5px;"></div></li>
+                {% endfor %}
+            </ol>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

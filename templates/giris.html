@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
-{% block title %}Giriş Yap{% endblock %}
+{% block title %}Giriş Yap - KampüsArşiv{% endblock %}
 
 {% block content %}
-<div class="card-box" style="padding: 20px; max-width: 420px; margin: 0 auto;">
-    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px;">🔑 Üye Girişi</div>
+<div class="card" style="max-width: 420px; margin: 0 auto;">
+    <h2 style="color: #ff6600; margin-bottom: 15px; border-bottom: 2px solid #ffd8bd; padding-bottom: 8px;">🔑 Giriş Yap</h2>
     <form method="POST">
-        <label><b>Kullanıcı Adı:</b></label><br>
-        <input type="text" name="kullanici_adi" style="width: 100%; padding: 8px; margin: 6px 0 14px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;" required><br>
+        <label style="font-weight: 600;">Kullanıcı Adı:</label><br>
+        <input type="text" name="kullanici_adi" style="width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #ffd8bd; border-radius: 6px; font-family: inherit;" required><br>
         
-        <label><b>Şifre:</b></label><br>
-        <input type="password" name="sifre" style="width: 100%; padding: 8px; margin: 6px 0 14px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;" required><br>
+        <label style="font-weight: 600;">Şifre:</label><br>
+        <input type="password" name="sifre" style="width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #ffd8bd; border-radius: 6px; font-family: inherit;" required><br>
         
-        <button type="submit" class="btn-orange" style="width: 100%;">Giriş Yap</button>
+        <button type="submit" class="btn" style="width: 100%; padding: 12px;">Giriş Yap</button>
     </form>
 </div>
 {% endblock %}
