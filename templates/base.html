@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}KampüsArşiv - Eğitim ve Bilgi Platformu{% endblock %}</title>
+    <title>{% block title %}KampüsArşiv{% endblock %}</title>
     <style>
         :root {
             --primary: #ff6600;
@@ -29,24 +29,10 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
-        }
-        .logo {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            letter-spacing: -0.5px;
-        }
-        nav {
-            display: flex;
             gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
         }
+        .logo { font-size: 1.4rem; font-weight: 800; color: white; text-decoration: none; }
+        nav { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .nav-link {
             background: rgba(255, 255, 255, 0.2);
             color: white;
@@ -55,17 +41,9 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 0.95rem;
-            transition: all 0.2s ease;
         }
-        .nav-link:hover {
-            background: white;
-            color: var(--primary);
-        }
-        .container {
-            max-width: 1100px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
+        .nav-link:hover { background: white; color: var(--primary); }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -84,23 +62,17 @@
             font-weight: 700;
             text-decoration: none;
             display: inline-block;
-            transition: background 0.2s;
         }
         .btn:hover { background-color: var(--primary-dark); }
-        .flash-msg {
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-        .flash-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .flash-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash-msg { padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-weight: 600; }
+        .flash-success { background: #d4edda; color: #155724; }
+        .flash-error { background: #f8d7da; color: #721c24; }
+        .flash-info { background: #cce5ff; color: #004085; }
         
-        @media (max-width: 768px) {
-            header { flex-direction: column; align-items: stretch; text-align: center; }
-            nav { justify-content: center; }
-        }
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
+        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 600px; position: relative; }
+        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 1.5rem; cursor: pointer; color: #888; }
     </style>
 </head>
 <body>
@@ -108,10 +80,11 @@
         <a href="{{ url_for('index') }}" class="logo">🍊 KampüsArşiv</a>
         <nav>
             <a href="{{ url_for('index') }}" class="nav-link">Ana Sayfa</a>
-            <a href="{{ url_for('zumreler') }}" class="nav-link">💬 Zümreler & Sohbet</a>
+            <a href="{{ url_for('forum') }}" class="nav-link">🔥 Forum & Trendler</a>
+            <a href="{{ url_for('zumreler') }}" class="nav-link">💬 Zümreler (Ortaokul/Lise)</a>
             {% if session.get('user_id') %}
-                <a href="{{ url_for('ai_yazili_olustur') }}" class="nav-link" style="background: #fff; color: #ff6600;">✨ Yapay Zeka Yazılı Sihirbazı</a>
-                <span style="font-weight: 600; font-size: 0.9rem; background: rgba(0,0,0,0.1); padding: 6px 10px; border-radius: 4px;">👤 {{ session.get('kullanici_adi') }} ({{ session.get('rol') }})</span>
+                <a href="{{ url_for('ai_yazili_olustur') }}" class="nav-link" style="background: white; color: var(--primary);">✨ AI Yazılı Sihirbazı</a>
+                <span style="font-weight: 600; font-size: 0.9rem; background: rgba(0,0,0,0.15); padding: 6px 12px; border-radius: 6px;">👤 {{ session.get('kullanici_adi') }} ({{ session.get('rol') }})</span>
                 <a href="{{ url_for('cikis') }}" class="nav-link" style="background: #ff4d4d;">Çıkış</a>
             {% else %}
                 <a href="{{ url_for('giris') }}" class="nav-link">Giriş Yap</a>
@@ -129,5 +102,27 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
+
+    <!-- Haber Gömme Modalı -->
+    <div id="haberModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="modalKapat()">&times;</span>
+            <h3 id="modalBaslik" style="color: #ff6600; margin-bottom: 12px;"></h3>
+            <p id="modalTarih" style="font-size: 0.85rem; color: #888; margin-bottom: 15px;"></p>
+            <div id="modalIcerik" style="font-size: 1rem; color: #333; line-height: 1.6;"></div>
+        </div>
+    </div>
+
+    <script>
+    function haberOku(baslik, detay, tarih) {
+        document.getElementById('modalBaslik').innerText = baslik;
+        document.getElementById('modalTarih').innerText = 'Tarih: ' + tarih;
+        document.getElementById('modalIcerik').innerText = detay;
+        document.getElementById('haberModal').style.display = 'block';
+    }
+    function modalKapat() {
+        document.getElementById('haberModal').style.display = 'none';
+    }
+    </script>
 </body>
 </html>
