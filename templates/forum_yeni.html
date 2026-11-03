@@ -1,25 +1,27 @@
 {% extends 'base.html' %}
-{% block title %}Yeni Konu Aç - KampüsArşiv{% endblock %}
+{% block title %}Yeni Konu & PDF Yükle{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 600px; margin: 0 auto;">
-    <h2 style="color: #ff6600; margin-bottom: 15px; border-bottom: 2px solid #ffd8bd; padding-bottom: 8px;">📝 Forumda Yeni Konu Aç</h2>
-    <form method="POST">
-        <label style="font-weight: 600;">Konu Başlığı:</label><br>
-        <input type="text" name="baslik" placeholder="Örn: 8. Sınıf LGS Matematik Mantık Sorusu Çözümü" style="width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #ffd8bd; border-radius: 6px;" required><br>
-        
-        <label style="font-weight: 600;">Kategori:</label><br>
-        <select name="kategori" style="width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #ffd8bd; border-radius: 6px;">
-            <option value="Ortaokul">🏫 Ortaokul</option>
-            <option value="Lise">🎓 Lise</option>
-            <option value="LGS / YKS">🎯 LGS / YKS Hazırlık</option>
-            <option value="Genel">💬 Genel Sohbet</option>
+<div class="box" style="max-width: 550px; margin: 0 auto;">
+    <h2 style="color: #e65c00; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">📄 Yeni Konu & PDF Dosyası Yükle</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <label><b>Başlık:</b></label><br>
+        <input type="text" name="baslik" required style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px;"><br>
+
+        <label><b>Kategori:</b></label><br>
+        <select name="kategori" style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="Ders Notları">Ders Notları</option>
+            <option value="Sınavlar & PDF">Sınavlar & PDF</option>
+            <option value="Genel">Genel</option>
         </select><br>
 
-        <label style="font-weight: 600;">Konu İçeriği:</label><br>
-        <textarea name="icerik" rows="6" placeholder="Detayları buraya yazın..." style="width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #ffd8bd; border-radius: 6px; font-family: inherit;" required></textarea><br>
-        
-        <button type="submit" class="btn" style="width: 100%; padding: 12px;">Konuyu Yayınla (+5 Puan)</button>
+        <label><b>PDF / Dosya Seç (Bilgisayardan Yükle):</b></label><br>
+        <input type="file" name="dosya" accept=".pdf,.png,.jpg,.jpeg" style="width: 100%; margin: 4px 0 12px 0;"><br>
+
+        <label><b>Açıklama:</b></label><br>
+        <textarea name="icerik" rows="4" required style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;"></textarea><br>
+
+        <button type="submit" class="btn-orange" style="width: 100%;">Yayınla</button>
     </form>
 </div>
 {% endblock %}

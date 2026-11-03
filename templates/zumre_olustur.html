@@ -1,38 +1,20 @@
 {% extends 'base.html' %}
-{% block title %}Zümre Oluştur - KampüsArşiv{% endblock %}
+{% block title %}Zümre Oluştur{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 500px; margin: 0 auto;">
-    <h2 style="color: #ff6600; margin-bottom: 15px; border-bottom: 2px solid #ffd8bd; padding-bottom: 8px;">➕ Yeni Zümre Oluştur</h2>
+<div class="box" style="max-width: 450px; margin: 0 auto;">
+    <h2 style="color: #e65c00; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">➕ Yeni Zümre</h2>
     <form method="POST">
-        <label style="font-weight: 600;">Zümre Başlığı:</label><br>
-        <input type="text" name="baslik" placeholder="Örn: 7. Sınıf Fen Bilimleri Deney & Materyal Zümresi" style="width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #ffd8bd; border-radius: 6px;" required><br>
-        
-        <label style="font-weight: 600;">Branş / Seviye:</label><br>
-        <select name="brans" style="width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #ffd8bd; border-radius: 6px;">
-            <optgroup label="Ortaokul Branşları">
-                <option value="Türkçe (Ortaokul)">Türkçe (Ortaokul)</option>
-                <option value="Matematik (Ortaokul)">Matematik (Ortaokul)</option>
-                <option value="Fen Bilimleri (Ortaokul)">Fen Bilimleri (Ortaokul)</option>
-                <option value="Sosyal Bilgiler (Ortaokul)">Sosyal Bilgiler (Ortaokul)</option>
-                <option value="İngilizce (Ortaokul)">İngilizce (Ortaokul)</option>
-                <option value="Din Kültürü (Ortaokul)">Din Kültürü (Ortaokul)</option>
-            </optgroup>
-            <optgroup label="Lise Branşları">
-                <option value="Türk Dili ve Edebiyatı">Türk Dili ve Edebiyatı</option>
-                <option value="Matematik (Lise)">Matematik (Lise)</option>
-                <option value="Fizik">Fizik</option>
-                <option value="Kimya">Kimya</option>
-                <option value="Biyoloji">Biyoloji</option>
-                <option value="Tarih">Tarih</option>
-                <option value="Coğrafya">Coğrafya</option>
-            </optgroup>
-        </select><br>
+        <label><b>Başlık:</b></label><br>
+        <input type="text" name="baslik" required style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px;"><br>
 
-        <label style="font-weight: 600;">Açıklama / Kurallar:</label><br>
-        <textarea name="aciklama" rows="4" placeholder="Zümre amacı ve içerik paylaşım kuralları..." style="width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #ffd8bd; border-radius: 6px; font-family: inherit;" required></textarea><br>
-        
-        <button type="submit" class="btn" style="width: 100%; padding: 12px;">Zümreyi Yayınla</button>
+        <label><b>Branş:</b></label><br>
+        <input type="text" name="brans" required style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px;"><br>
+
+        <label><b>Açıklama:</b></label><br>
+        <textarea name="aciklama" rows="3" required style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;"></textarea><br>
+
+        <button type="submit" class="btn-orange" style="width: 100%;">Oluştur</button>
     </form>
 </div>
 {% endblock %}

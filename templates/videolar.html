@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Video Arşivi{% endblock %}
+
+{% block content %}
+<div class="box">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="color: #e65c00; margin: 0;">🎥 YouTube Tarzı Konu Anlatım Videoları</h2>
+        <a href="{{ url_for('video_yukle') }}" class="btn-orange">+ Video Yükle</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+        {% if videolar %}
+            {% for v in videolar %}
+                <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; background: #fffaf5;">
+                    <h3 style="color: #e65c00; margin-top: 0;"><a href="{{ url_for('video_izle', video_id=v.id) }}" style="color: #e65c00; text-decoration: none;">{{ v.baslik }}</a></h3>
+                    <p style="font-size: 0.85rem; color: #555;">{{ v.aciklama[:90] }}...</p>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #888; margin-top: 10px;">
+                        <span>Yükleyen: <a href="{{ url_for('profil_goruntule', kullanici_adi=v.yazar) }}">{{ v.yazar }}</a></span>
+                        <span>👁️ {{ v.izlenme }} izlenme</span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #888;">Henüz video yüklenmedi. İlk videoyu sen yükle!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

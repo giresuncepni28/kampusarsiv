@@ -2,36 +2,16 @@
 {% block title %}Profil Düzenle{% endblock %}
 
 {% block content %}
-{% if user %}
-<div class="card-box" style="padding: 20px; max-width: 500px; margin: 0 auto;">
-    <div class="card-header-light" style="padding:0 0 10px 0; margin-bottom:15px;">✏️ Profil Bilgilerini Güncelle</div>
-    
-    <form method="POST" enctype="multipart/form-data">
-        <label><b>Kullanıcı Adı / İsim:</b></label><br>
-        <input type="text" name="kullanici_adi" value="{{ user['kullanici_adi'] }}" style="width: 100%; padding: 8px; margin: 6px 0 14px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;" required><br>
-        
-        <label><b>Profil Fotoğrafı (Avatar):</b></label><br>
-        <div style="margin: 6px 0 14px 0; display:flex; align-items:center; gap:15px;">
-            {% if user['profil_foto'] and user['profil_foto'] != 'default_avatar.png' %}
-                <img src="{{ url_for('static', filename='avatars/' + user['profil_foto']) }}" class="avatar-img" style="width:60px; height:60px;">
-            {% else %}
-                <div style="width:60px; height:60px; border-radius:50%; background:#ffaa80; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold;">
-                    {{ user['kullanici_adi'][0]|upper }}
-                </div>
-            {% endif %}
-            <input type="file" name="profil_foto" accept="image/*">
-        </div>
+<div class="box" style="max-width: 450px; margin: 0 auto;">
+    <h2 style="color: #e65c00; border-bottom: 2px solid #fee2e2; padding-bottom: 8px;">✏️ Profili Düzenle</h2>
+    <form method="POST">
+        <label><b>Avatar URL:</b></label><br>
+        <input type="text" name="avatar" value="{{ user.avatar }}" style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px;"><br>
 
-        <label><b>Hakkımda / Biyografi:</b></label><br>
-        <textarea name="biyografi" rows="4" style="width: 100%; padding: 8px; margin: 6px 0 18px 0; border: 1px solid #ffccb3; border-radius: 4px; font-family: inherit;">{{ user['biyografi'] }}</textarea><br>
-        
-        <button type="submit" class="btn-orange" style="width: 100%;">Değişiklikleri Kaydet</button>
+        <label><b>Biyografi:</b></label><br>
+        <textarea name="bio" rows="3" style="width: 100%; padding: 8px; margin: 4px 0 12px 0; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;">{{ user.bio }}</textarea><br>
+
+        <button type="submit" class="btn-orange" style="width: 100%;">Kaydet</button>
     </form>
 </div>
-{% else %}
-<div class="card-box" style="padding: 20px; text-align: center;">
-    <p>Oturum bilgisi geçersiz. Lütfen tekrar giriş yapın.</p>
-    <a href="/giris" class="btn-orange">Giriş Yap</a>
-</div>
-{% endif %}
 {% endblock %}

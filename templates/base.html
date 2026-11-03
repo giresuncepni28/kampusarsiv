@@ -5,90 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KampüsArşiv{% endblock %}</title>
     <style>
-        :root {
-            --primary: #ff6600;
-            --primary-dark: #e55c00;
-            --bg-light: #fffaf5;
-            --card-bg: #ffffff;
-            --text-main: #2d3748;
-            --border-color: #ffd8bd;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-main);
-            line-height: 1.6;
-        }
-        header {
-            background: linear-gradient(135deg, #ff6600, #ff8533);
-            color: white;
-            padding: 16px 24px;
-            box-shadow: 0 4px 12px rgba(255, 102, 0, 0.15);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .logo { font-size: 1.4rem; font-weight: 800; color: white; text-decoration: none; }
-        nav { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .nav-link {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 8px 14px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-        .nav-link:hover { background: white; color: var(--primary); }
-        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 700;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn:hover { background-color: var(--primary-dark); }
-        .flash-msg { padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-weight: 600; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f7f9fc; color: #333; margin: 0; padding: 0; }
+        header { background-color: #e65c00; color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        header a { color: white; text-decoration: none; font-weight: bold; }
+        .logo { font-size: 1.3rem; }
+        nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .nav-btn { background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9rem; }
+        .nav-btn:hover { background: white; color: #e65c00; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        .box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .btn-orange { background-color: #e65c00; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; }
+        .btn-orange:hover { background-color: #cc5200; }
+        .flash { padding: 10px; border-radius: 4px; margin-bottom: 15px; font-weight: 500; }
         .flash-success { background: #d4edda; color: #155724; }
         .flash-error { background: #f8d7da; color: #721c24; }
-        .flash-info { background: #cce5ff; color: #004085; }
-        
-        /* Modal Styles */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 600px; position: relative; }
-        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 1.5rem; cursor: pointer; color: #888; }
+        .flash-info { background: #e2e3e5; color: #383d41; }
+        .video-box { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; border-radius: 6px; margin-top: 10px; }
+        .video-box video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
     <header>
         <a href="{{ url_for('index') }}" class="logo">🍊 KampüsArşiv</a>
         <nav>
-            <a href="{{ url_for('index') }}" class="nav-link">Ana Sayfa</a>
-            <a href="{{ url_for('forum') }}" class="nav-link">🔥 Forum & Trendler</a>
-            <a href="{{ url_for('zumreler') }}" class="nav-link">💬 Zümreler (Ortaokul/Lise)</a>
+            <a href="{{ url_for('index') }}" class="nav-btn">Ana Sayfa</a>
+            <a href="{{ url_for('videolar') }}" class="nav-btn">🎥 Video Arşivi</a>
+            <a href="{{ url_for('forum') }}" class="nav-btn">📌 Forum & PDF</a>
+            <a href="{{ url_for('zumreler') }}" class="nav-btn">👥 Zümreler</a>
             {% if session.get('user_id') %}
-                <a href="{{ url_for('ai_yazili_olustur') }}" class="nav-link" style="background: white; color: var(--primary);">✨ AI Yazılı Sihirbazı</a>
-                <span style="font-weight: 600; font-size: 0.9rem; background: rgba(0,0,0,0.15); padding: 6px 12px; border-radius: 6px;">👤 {{ session.get('kullanici_adi') }} ({{ session.get('rol') }})</span>
-                <a href="{{ url_for('cikis') }}" class="nav-link" style="background: #ff4d4d;">Çıkış</a>
+                <a href="{{ url_for('profil_goruntule', kullanici_adi=session.get('kullanici_adi')) }}" class="nav-btn" style="background: white; color: #e65c00;">👤 Profilim</a>
+                <a href="{{ url_for('cikis') }}" class="nav-btn" style="background: #dc3545;">Çıkış</a>
             {% else %}
-                <a href="{{ url_for('giris') }}" class="nav-link">Giriş Yap</a>
-                <a href="{{ url_for('kayitol') }}" class="nav-link" style="background: white; color: var(--primary);">Kayıt Ol</a>
+                <a href="{{ url_for('giris') }}" class="nav-btn">Giriş Yap</a>
+                <a href="{{ url_for('kayitol') }}" class="nav-btn" style="background: white; color: #e65c00;">Kayıt Ol</a>
             {% endif %}
         </nav>
     </header>
@@ -96,33 +45,11 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for cat, msg in messages %}
-                    <div class="flash-msg flash-{{ cat }}">{{ msg }}</div>
+                    <div class="flash flash-{{ cat }}">{{ msg }}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
-
-    <!-- Haber Gömme Modalı -->
-    <div id="haberModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="modalKapat()">&times;</span>
-            <h3 id="modalBaslik" style="color: #ff6600; margin-bottom: 12px;"></h3>
-            <p id="modalTarih" style="font-size: 0.85rem; color: #888; margin-bottom: 15px;"></p>
-            <div id="modalIcerik" style="font-size: 1rem; color: #333; line-height: 1.6;"></div>
-        </div>
-    </div>
-
-    <script>
-    function haberOku(baslik, detay, tarih) {
-        document.getElementById('modalBaslik').innerText = baslik;
-        document.getElementById('modalTarih').innerText = 'Tarih: ' + tarih;
-        document.getElementById('modalIcerik').innerText = detay;
-        document.getElementById('haberModal').style.display = 'block';
-    }
-    function modalKapat() {
-        document.getElementById('haberModal').style.display = 'none';
-    }
-    </script>
 </body>
 </html>

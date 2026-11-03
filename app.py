@@ -2,13 +2,25 @@ import os
 import sqlite3
 import urllib.request
 import xml.etree.ElementTree as ET
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = 'kampusarsiv_gizli_anahtar_v6'
+app.secret_key = 'kampusarsiv_gizli_anahtar_v8'
+
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'mp4', 'mov', 'avi'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'dosyalar'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'videolar'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'resimler'), exist_ok=True)
 
 DATABASE = 'database.db'
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -17,18 +29,26 @@ def get_db_connection():
 
 def init_db():
     conn = get_db_connection()
-    # Kullanıcılar
     conn.execute('''
         CREATE TABLE IF NOT EXISTS kullanicilar (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             kullanici_adi TEXT UNIQUE NOT NULL,
             sifre TEXT NOT NULL,
             rol TEXT NOT NULL DEFAULT 'Öğrenci',
-            puan INTEGER DEFAULT 0
+            bio TEXT DEFAULT 'Henüz biyografi eklenmedi.',
+            avatar TEXT DEFAULT 'https://api.dicebear.com/7.x/bottts/svg?seed=kampus'
         )
     ''')
     
-    # Forum Konuları (Trend & Puan Mekanizmalı)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS takipler (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            takip_eden_id INTEGER NOT NULL,
+            takip_edilen_id INTEGER NOT NULL,
+            UNIQUE(takip_eden_id, takip_edilen_id)
+        )
+    ''')
+
     conn.execute('''
         CREATE TABLE IF NOT EXISTS forum_konulari (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,26 +56,47 @@ def init_db():
             icerik TEXT NOT NULL,
             yazar TEXT NOT NULL,
             kategori TEXT DEFAULT 'Genel',
+            dosya_adi TEXT DEFAULT '',
             likes INTEGER DEFAULT 0,
             dislikes INTEGER DEFAULT 0,
-            trend_puan INTEGER DEFAULT 0,
             tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
-    # Forum Yanıtları
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS videolar (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            baslik TEXT NOT NULL,
+            aciklama TEXT NOT NULL,
+            yazar TEXT NOT NULL,
+            video_dosya TEXT NOT NULL,
+            izlenme INTEGER DEFAULT 0,
+            tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     conn.execute('''
         CREATE TABLE IF NOT EXISTS forum_yanitlar (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             konu_id INTEGER NOT NULL,
             yazar TEXT NOT NULL,
             mesaj TEXT NOT NULL,
+            medya_dosya TEXT DEFAULT '',
             tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (konu_id) REFERENCES forum_konulari (id)
         )
     ''')
+
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS oy_kayitlari (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kullanici_id INTEGER NOT NULL,
+            hedef_id INTEGER NOT NULL,
+            hedef_tur TEXT NOT NULL,
+            UNIQUE(kullanici_id, hedef_id, hedef_tur)
+        )
+    ''')
     
-    # Zümreler
     conn.execute('''
         CREATE TABLE IF NOT EXISTS zumreler (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,68 +107,62 @@ def init_db():
         )
     ''')
 
-    # Zümre Mesajları (Video, Resim, GIF, Emoji Destekli)
     conn.execute('''
         CREATE TABLE IF NOT EXISTS zumre_mesajlar (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             zumre_id INTEGER NOT NULL,
             kullanici_adi TEXT NOT NULL,
             mesaj TEXT NOT NULL,
-            medya_url TEXT,
-            medya_tur TEXT DEFAULT 'resim', -- resim, gif, video
-            likes INTEGER DEFAULT 0,
-            dislikes INTEGER DEFAULT 0,
+            medya_dosya TEXT DEFAULT '',
             tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (zumre_id) REFERENCES zumreler (id)
         )
     ''')
 
-    # Sabit Admin Hesabı (yigittalhaozer / talha333)
     admin_user = conn.execute("SELECT * FROM kullanicilar WHERE kullanici_adi = ?", ('yigittalhaozer',)).fetchone()
     if not admin_user:
         hashed_sifre = generate_password_hash('talha333')
-        conn.execute("INSERT INTO kullanicilar (kullanici_adi, sifre, rol, puan) VALUES (?, ?, ?, ?)",
-                     ('yigittalhaozer', hashed_sifre, 'Admin', 999))
+        conn.execute("INSERT INTO kullanicilar (kullanici_adi, sifre, rol, bio) VALUES (?, ?, ?, ?)",
+                     ('yigittalhaozer', hashed_sifre, 'Admin', 'KampüsArşiv Sistem Yöneticisi'))
         
     conn.commit()
     conn.close()
 
 init_db()
 
-# MEB RSS / Haber Çekme Fonksiyonu
-def meb_haberlerini_cek():
+def gercek_meb_haberlerini_cek():
     haberler = []
     try:
         url = "https://www.meb.gov.tr/baglantilar/rss/rss.xml"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=3) as response:
+        with urllib.request.urlopen(req, timeout=4) as response:
             xml_data = response.read()
             root = ET.fromstring(xml_data)
-            for idx, item in enumerate(root.findall('./channel/item')[:8]):
+            for idx, item in enumerate(root.findall('./channel/item')[:5]):
                 baslik = item.find('title').text if item.find('title') is not None else "MEB Duyurusu"
-                detay = item.find('description').text if item.find('description') is not None else "Detay bulunamadı."
+                link = item.find('link').text if item.find('link') is not None else "https://www.meb.gov.tr"
                 tarih = item.find('pubDate').text if item.find('pubDate') is not None else "Güncel"
                 haberler.append({
                     'id': idx + 1,
                     'baslik': baslik,
-                    'detay': detay,
+                    'link': link,
                     'tarih': tarih[:16]
                 })
     except Exception:
         haberler = [
-            {'id': 1, 'baslik': 'MEB Ortaokul & Lise Müfredat Değerlendirmesi', 'detay': 'Eğitimde yeni döneme ilişkin müfredat yenilikleri ve dijital ders materyalleri erişime açıldı.', 'tarih': 'Güncel'},
-            {'id': 2, 'baslik': 'Zümre Çalışmaları ve Dijital Arşiv Projesi', 'detay': 'Tüm ortaokul ve lise branş zümreleri ortak ders içeriklerini dijital ortama aktarıyor.', 'tarih': 'Güncel'},
-            {'id': 3, 'baslik': 'LGS ve YKS Sınav Hazırlık Destek Paketleri', 'detay': 'Öğrenciler için kazanım kavrama testleri ve örnek yazılı soru kitapçıkları yayımlandı.', 'tarih': 'Bugün'}
+            {'id': 1, 'baslik': 'Milli Eğitim Bakanlığı Resmi Duyurular ve Basın Açıklamaları', 'link': 'https://www.meb.gov.tr', 'tarih': 'Resmi Kaynak'},
+            {'id': 2, 'baslik': 'MEB Eğitim Takvimi ve Sınav Uygulama Esasları', 'link': 'https://www.meb.gov.tr', 'tarih': 'Resmi Kaynak'}
         ]
     return haberler
 
 @app.route('/')
 def index():
-    haberler = meb_haberlerini_cek()
+    haberler = gercek_meb_haberlerini_cek()
     conn = get_db_connection()
-    trend_konular = conn.execute("SELECT * FROM forum_konulari ORDER BY (likes - dislikes + trend_puan) DESC LIMIT 5").fetchall()
+    son_konular = conn.execute("SELECT * FROM forum_konulari ORDER BY id DESC LIMIT 4").fetchall()
+    son_videolar = conn.execute("SELECT * FROM videolar ORDER BY id DESC LIMIT 3").fetchall()
     conn.close()
-    return render_template('index.html', haberler=haberler, trend_konular=trend_konular)
+    return render_template('index.html', haberler=haberler, son_konular=son_konular, son_videolar=son_videolar)
 
 @app.route('/kayitol', methods=['GET', 'POST'])
 def kayitol():
@@ -147,11 +182,11 @@ def kayitol():
                          (kullanici_adi, hashed_sifre, rol))
             conn.commit()
             conn.close()
-            flash('Kayıt başarılı! Şimdi giriş yapabilirsiniz.', 'success')
+            flash('Kayıt başarılı! Giriş yapabilirsiniz.', 'success')
             return redirect(url_for('giris'))
         except sqlite3.IntegrityError:
             conn.close()
-            flash('Bu kullanıcı adı zaten kullanılıyor!', 'error')
+            flash('Bu kullanıcı adı zaten alınmış!', 'error')
     return render_template('kayitol.html')
 
 @app.route('/giris', methods=['GET', 'POST'])
@@ -168,7 +203,7 @@ def giris():
             session['user_id'] = user['id']
             session['kullanici_adi'] = user['kullanici_adi']
             session['rol'] = user['rol']
-            flash('Hoş geldiniz!', 'success')
+            flash('Giriş başarılı!', 'success')
             return redirect(url_for('index'))
         else:
             flash('Hatalı kullanıcı adı veya şifre!', 'error')
@@ -181,15 +216,127 @@ def cikis():
     flash('Çıkış yapıldı.', 'info')
     return redirect(url_for('index'))
 
-# FORUM ÖZELLİĞİ (Tüm Detaylarıyla)
+@app.route('/profil/<string:kullanici_adi>')
+def profil_goruntule(kullanici_adi):
+    conn = get_db_connection()
+    hedef_user = conn.execute("SELECT * FROM kullanicilar WHERE kullanici_adi = ?", (kullanici_adi,)).fetchone()
+    if not hedef_user:
+        conn.close()
+        flash('Kullanıcı bulunamadı.', 'error')
+        return redirect(url_for('index'))
+        
+    takipci_sayisi = conn.execute("SELECT COUNT(*) FROM takipler WHERE takip_edilen_id = ?", (hedef_user['id'],)).fetchone()[0]
+    takip_edilen_sayisi = conn.execute("SELECT COUNT(*) FROM takipler WHERE takip_eden_id = ?", (hedef_user['id'],)).fetchone()[0]
+    
+    takipte_mi = False
+    if 'user_id' in session:
+        kontrol = conn.execute("SELECT * FROM takipler WHERE takip_eden_id = ? AND takip_edilen_id = ?",
+                               (session['user_id'], hedef_user['id'])).fetchone()
+        if kontrol:
+            takipte_mi = True
+            
+    user_konular = conn.execute("SELECT * FROM forum_konulari WHERE yazar = ? ORDER BY id DESC", (kullanici_adi,)).fetchall()
+    user_videolar = conn.execute("SELECT * FROM videolar WHERE yazar = ? ORDER BY id DESC", (kullanici_adi,)).fetchall()
+    conn.close()
+    return render_template('profil.html', hedef_user=hedef_user, takipci_sayisi=takipci_sayisi, takip_edilen_sayisi=takip_edilen_sayisi, takipte_mi=takipte_mi, user_konular=user_konular, user_videolar=user_videolar)
+
+@app.route('/takip/<int:hedef_id>')
+def takip_et_birak(hedef_id):
+    if 'user_id' not in session:
+        flash('İşlem için giriş yapmalısınız.', 'error')
+        return redirect(url_for('giris'))
+        
+    user_id = session['user_id']
+    if user_id == hedef_id:
+        flash('Kendinizi takip edemezsiniz.', 'error')
+        return redirect(url_for('index'))
+        
+    conn = get_db_connection()
+    hedef = conn.execute("SELECT kullanici_adi FROM kullanicilar WHERE id = ?", (hedef_id,)).fetchone()
+    kontrol = conn.execute("SELECT * FROM takipler WHERE takip_eden_id = ? AND takip_edilen_id = ?", (user_id, hedef_id)).fetchone()
+    
+    if kontrol:
+        conn.execute("DELETE FROM takipler WHERE takip_eden_id = ? AND takip_edilen_id = ?", (user_id, hedef_id))
+        flash(f'{hedef["kullanici_adi"]} takipten çıkıldı.', 'info')
+    else:
+        conn.execute("INSERT INTO takipler (takip_eden_id, takip_edilen_id) VALUES (?, ?)", (user_id, hedef_id))
+        flash(f'{hedef["kullanici_adi"]} takip edilmeye başlandı!', 'success')
+        
+    conn.commit()
+    conn.close()
+    return redirect(url_for('profil_goruntule', kullanici_adi=hedef['kullanici_adi']))
+
+@app.route('/profil/duzenle', methods=['GET', 'POST'])
+def profil_duzenle():
+    if 'user_id' not in session:
+        flash('Giriş yapmalısınız.', 'error')
+        return redirect(url_for('giris'))
+        
+    conn = get_db_connection()
+    if request.method == 'POST':
+        bio = request.form.get('bio', '').strip()
+        avatar = request.form.get('avatar', '').strip()
+        conn.execute("UPDATE kullanicilar SET bio = ?, avatar = ? WHERE id = ?", (bio, avatar, session['user_id']))
+        conn.commit()
+        flash('Profil güncellendi!', 'success')
+        
+    user = conn.execute("SELECT * FROM kullanicilar WHERE id = ?", (session['user_id'],)).fetchone()
+    conn.close()
+    return render_template('profil_duzenle.html', user=user)
+
+@app.route('/videolar')
+def videolar():
+    conn = get_db_connection()
+    tum_videolar = conn.execute("SELECT * FROM videolar ORDER BY id DESC").fetchall()
+    conn.close()
+    return render_template('videolar.html', videolar=tum_videolar)
+
+@app.route('/video/yukle', methods=['GET', 'POST'])
+def video_yukle():
+    if 'user_id' not in session:
+        flash('Video yüklemek için giriş yapmalısınız.', 'error')
+        return redirect(url_for('giris'))
+        
+    if request.method == 'POST':
+        baslik = request.form['baslik'].strip()
+        aciklama = request.form['aciklama'].strip()
+        video_dosya = request.files.get('video_dosya')
+        
+        if video_dosya and allowed_file(video_dosya.filename):
+            filename = secure_filename(video_dosya.filename)
+            dosya_yolu = os.path.join(app.config['UPLOAD_FOLDER'], 'videolar', filename)
+            video_dosya.save(dosya_yolu)
+            db_dosya_yolu = f'/static/uploads/videolar/{filename}'
+            
+            conn = get_db_connection()
+            conn.execute("INSERT INTO videolar (baslik, aciklama, yazar, video_dosya) VALUES (?, ?, ?, ?)",
+                         (baslik, aciklama, session['kullanici_adi'], db_dosya_yolu))
+            conn.commit()
+            conn.close()
+            flash('Video başarıyla yüklendi!', 'success')
+            return redirect(url_for('videolar'))
+        else:
+            flash('Geçerli bir video dosyası seçin!', 'error')
+            
+    return render_template('video_yukle.html')
+
+@app.route('/video/<int:video_id>')
+def video_izle(video_id):
+    conn = get_db_connection()
+    conn.execute("UPDATE videolar SET izlenme = izlenme + 1 WHERE id = ?", (video_id,))
+    conn.commit()
+    video = conn.execute("SELECT * FROM videolar WHERE id = ?", (video_id,)).fetchone()
+    conn.close()
+    return render_template('video_izle.html', video=video)
+
 @app.route('/forum')
 def forum():
     kategori = request.args.get('kategori', 'Tümü')
     conn = get_db_connection()
     if kategori != 'Tümü':
-        konular = conn.execute("SELECT * FROM forum_konulari WHERE kategori = ? ORDER BY (likes - dislikes + trend_puan) DESC, id DESC", (kategori,)).fetchall()
+        konular = conn.execute("SELECT * FROM forum_konulari WHERE kategori = ? ORDER BY id DESC", (kategori,)).fetchall()
     else:
-        konular = conn.execute("SELECT * FROM forum_konulari ORDER BY (likes - dislikes + trend_puan) DESC, id DESC").fetchall()
+        konular = conn.execute("SELECT * FROM forum_konulari ORDER BY id DESC").fetchall()
     conn.close()
     return render_template('forum.html', konular=konular, secili_kategori=kategori)
 
@@ -203,15 +350,21 @@ def forum_yeni():
         baslik = request.form['baslik'].strip()
         icerik = request.form['icerik'].strip()
         kategori = request.form.get('kategori', 'Genel')
-        yazar = session['kullanici_adi']
+        dosya = request.files.get('dosya')
         
+        dosya_adi = ''
+        if dosya and allowed_file(dosya.filename):
+            filename = secure_filename(dosya.filename)
+            dosya_yolu = os.path.join(app.config['UPLOAD_FOLDER'], 'dosyalar', filename)
+            dosya.save(dosya_yolu)
+            dosya_adi = f'/static/uploads/dosyalar/{filename}'
+            
         conn = get_db_connection()
-        conn.execute("INSERT INTO forum_konulari (baslik, icerik, yazar, kategori, trend_puan) VALUES (?, ?, ?, ?, 10)",
-                     (baslik, icerik, yazar, kategori))
-        conn.execute("UPDATE kullanicilar SET puan = puan + 5 WHERE kullanici_adi = ?", (yazar,))
+        conn.execute("INSERT INTO forum_konulari (baslik, icerik, yazar, kategori, dosya_adi) VALUES (?, ?, ?, ?, ?)",
+                     (baslik, icerik, session['kullanici_adi'], kategori, dosya_adi))
         conn.commit()
         conn.close()
-        flash('Konunuz başarıyla yayınlandı (+5 Puan kazandınız)!', 'success')
+        flash('Konu ve dosya paylaşıldı!', 'success')
         return redirect(url_for('forum'))
     return render_template('forum_yeni.html')
 
@@ -222,14 +375,22 @@ def forum_detay(konu_id):
     
     if request.method == 'POST':
         if 'user_id' not in session:
-            flash('Yanıt yazmak için giriş yapmalısınız.', 'error')
+            flash('Yorum yapmak için giriş yapmalısınız.', 'error')
             return redirect(url_for('giris'))
             
         mesaj = request.form.get('mesaj', '').strip()
-        if mesaj:
-            conn.execute("INSERT INTO forum_yanitlar (konu_id, yazar, mesaj) VALUES (?, ?, ?)",
-                         (konu_id, session['kullanici_adi'], mesaj))
-            conn.execute("UPDATE forum_konulari SET trend_puan = trend_puan + 2 WHERE id = ?", (konu_id,))
+        medya = request.files.get('medya')
+        
+        medya_dosya = ''
+        if medya and allowed_file(medya.filename):
+            filename = secure_filename(medya.filename)
+            medya_yolu = os.path.join(app.config['UPLOAD_FOLDER'], 'resimler', filename)
+            medya.save(medya_yolu)
+            medya_dosya = f'/static/uploads/resimler/{filename}'
+            
+        if mesaj or medya_dosya:
+            conn.execute("INSERT INTO forum_yanitlar (konu_id, yazar, mesaj, medya_dosya) VALUES (?, ?, ?, ?)",
+                         (konu_id, session['kullanici_adi'], mesaj, medya_dosya))
             conn.commit()
             
     yanitlar = conn.execute("SELECT * FROM forum_yanitlar WHERE konu_id = ? ORDER BY id ASC", (konu_id,)).fetchall()
@@ -242,16 +403,25 @@ def forum_oy(konu_id, tip):
         flash('Oy kullanmak için giriş yapmalısınız.', 'error')
         return redirect(url_for('giris'))
         
+    user_id = session['user_id']
     conn = get_db_connection()
-    if tip == 'like':
-        conn.execute("UPDATE forum_konulari SET likes = likes + 1, trend_puan = trend_puan + 3 WHERE id = ?", (konu_id,))
-    elif tip == 'dislike':
-        conn.execute("UPDATE forum_konulari SET dislikes = dislikes + 1, trend_puan = trend_puan - 2 WHERE id = ?", (konu_id,))
-    conn.commit()
+    kontrol = conn.execute("SELECT * FROM oy_kayitlari WHERE kullanici_id = ? AND hedef_id = ? AND hedef_tur = 'konu'",
+                             (user_id, konu_id)).fetchone()
+                             
+    if kontrol:
+        flash('Bu konuya zaten oy verdiniz!', 'info')
+    else:
+        conn.execute("INSERT INTO oy_kayitlari (kullanici_id, hedef_id, hedef_tur) VALUES (?, ?, 'konu')", (user_id, konu_id))
+        if tip == 'like':
+            conn.execute("UPDATE forum_konulari SET likes = likes + 1 WHERE id = ?", (konu_id,))
+        else:
+            conn.execute("UPDATE forum_konulari SET dislikes = dislikes + 1 WHERE id = ?", (konu_id,))
+        conn.commit()
+        flash('Oyunuz eklendi!', 'success')
+        
     conn.close()
     return redirect(url_for('forum_detay', konu_id=konu_id))
 
-# ZÜMRELER SOHBETİ & MEDYA / VİDEO PAYLAŞMA
 @app.route('/zumreler')
 def zumreler():
     conn = get_db_connection()
@@ -262,28 +432,27 @@ def zumreler():
 @app.route('/zumre/olustur', methods=['GET', 'POST'])
 def zumre_olustur():
     if 'user_id' not in session:
-        flash('Zümre oluşturmak için giriş yapmalısınız.', 'error')
+        flash('Giriş yapmalısınız.', 'error')
         return redirect(url_for('giris'))
         
     if request.method == 'POST':
         baslik = request.form['baslik'].strip()
-        brans = request.form.get('brans', 'Türkçe (Ortaokul)')
+        brans = request.form.get('brans', 'Genel')
         aciklama = request.form['aciklama'].strip()
-        olusturan = session['kullanici_adi']
         
         conn = get_db_connection()
         conn.execute("INSERT INTO zumreler (baslik, brans, aciklama, olusturan) VALUES (?, ?, ?, ?)",
-                     (baslik, brans, aciklama, olusturan))
+                     (baslik, brans, aciklama, session['kullanici_adi']))
         conn.commit()
         conn.close()
-        flash('Zümre başarıyla oluşturuldu!', 'success')
+        flash('Zümre oluşturuldu!', 'success')
         return redirect(url_for('zumreler'))
     return render_template('zumre_olustur.html')
 
 @app.route('/zumre/<int:zumre_id>', methods=['GET', 'POST'])
 def zumre_detay(zumre_id):
     if 'user_id' not in session:
-        flash('Zümre sohbetine katılmak için giriş yapmalısınız.', 'error')
+        flash('Giriş yapmalısınız.', 'error')
         return redirect(url_for('giris'))
         
     conn = get_db_connection()
@@ -291,58 +460,23 @@ def zumre_detay(zumre_id):
     
     if request.method == 'POST':
         mesaj = request.form.get('mesaj', '').strip()
-        medya_url = request.form.get('medya_url', '').strip()
-        medya_tur = request.form.get('medya_tur', 'resim') # resim, gif, video
-        kullanici_adi = session['kullanici_adi']
+        medya = request.files.get('medya')
         
-        if mesaj or medya_url:
-            conn.execute("INSERT INTO zumre_mesajlar (zumre_id, kullanici_adi, mesaj, medya_url, medya_tur) VALUES (?, ?, ?, ?, ?)",
-                         (zumre_id, kullanici_adi, mesaj, medya_url, medya_tur))
+        medya_dosya = ''
+        if medya and allowed_file(medya.filename):
+            filename = secure_filename(medya.filename)
+            medya_yolu = os.path.join(app.config['UPLOAD_FOLDER'], 'resimler', filename)
+            medya.save(medya_yolu)
+            medya_dosya = f'/static/uploads/resimler/{filename}'
+            
+        if mesaj or medya_dosya:
+            conn.execute("INSERT INTO zumre_mesajlar (zumre_id, kullanici_adi, mesaj, medya_dosya) VALUES (?, ?, ?, ?)",
+                         (zumre_id, session['kullanici_adi'], mesaj, medya_dosya))
             conn.commit()
             
     mesajlar = conn.execute("SELECT * FROM zumre_mesajlar WHERE zumre_id = ? ORDER BY id ASC", (zumre_id,)).fetchall()
     conn.close()
     return render_template('zumre_detay.html', zumre=zumre, mesajlar=mesajlar)
-
-@app.route('/zumre/mesaj/oy/<int:mesaj_id>/<string:tip>')
-def zumre_mesaj_oy(mesaj_id, tip):
-    if 'user_id' not in session:
-        return jsonify({'error': 'Yetkisiz'}), 403
-    conn = get_db_connection()
-    mesaj = conn.execute("SELECT zumre_id FROM zumre_mesajlar WHERE id = ?", (mesaj_id,)).fetchone()
-    if tip == 'like':
-        conn.execute("UPDATE zumre_mesajlar SET likes = likes + 1 WHERE id = ?", (mesaj_id,))
-    elif tip == 'dislike':
-        conn.execute("UPDATE zumre_mesajlar SET dislikes = dislikes + 1 WHERE id = ?", (mesaj_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('zumre_detay', zumre_id=mesaj['zumre_id']))
-
-# YAPAY ZEKA YAZILI SİHİRBAZI (ORTAOKUL & LİSE BRANŞLARI)
-@app.route('/ai-yazili-olustur', methods=['GET', 'POST'])
-def ai_yazili_olustur():
-    if 'user_id' not in session:
-        flash('Bu aracı kullanmak için giriş yapmalısınız.', 'error')
-        return redirect(url_for('giris'))
-        
-    soru_paketi = None
-    if request.method == 'POST':
-        ders = request.form.get('ders', 'Türkçe')
-        seviye = request.form.get('seviye', '8. Sınıf (LGS Tarzı)')
-        zorluk = request.form.get('zorluk', 'Orta')
-        
-        soru_paketi = {
-            "ders": ders,
-            "seviye": seviye,
-            "zorluk": zorluk,
-            "sorular": [
-                f"1. {ders} dersi {seviye} kazanımlarına uygun ana kavramları açıklayınız.",
-                f"2. {ders} dersine ait uygulama sorusunu aşama aşama çözünüz ({zorluk} Seviye).",
-                f"3. Verilen metin veya tablo üzerinden {ders} mantığına göre yorum yapınız.",
-                f"4. Mantık ve muhakeme gerektiren yeni nesil {ders} sorusu."
-            ]
-        }
-    return render_template('ai_yazili.html', soru_paketi=soru_paketi)
 
 if __name__ == '__main__':
     app.run(debug=True)

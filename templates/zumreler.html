@@ -1,33 +1,27 @@
 {% extends 'base.html' %}
-{% block title %}Zümreler - KampüsArşiv{% endblock %}
+{% block title %}Zümreler{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ffd8bd; padding-bottom: 12px;">
-        <div>
-            <h2 style="color: #ff6600;">💬 Eğitim Zümreleri (Ortaokul & Lise)</h2>
-            <p style="color: #666; font-size: 0.95rem;">Ortaokul ve Lise branşlarına özel zümre sohbet odalarına katılın veya yeni zümre oluşturun.</p>
-        </div>
-        <a href="{{ url_for('zumre_olustur') }}" class="btn">+ Yeni Zümre Oluştur</a>
+<div class="box">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="color: #e65c00; margin: 0;">👥 Zümre Odaları</h2>
+        <a href="{{ url_for('zumre_olustur') }}" class="btn-orange">+ Yeni Zümre</a>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
         {% if zumreler %}
             {% for z in zumreler %}
-                <div style="background: #fffaf5; border: 1px solid #ffd8bd; padding: 20px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <span style="font-size: 0.75rem; background: #2b6cb0; color: white; padding: 2px 8px; border-radius: 4px; font-weight: 700;">{{ z.brans }}</span>
-                        <h3 style="color: #ff6600; margin: 8px 0;">📚 {{ z.baslik }}</h3>
-                        <p style="color: #555; font-size: 0.95rem; margin-bottom: 15px;">{{ z.aciklama }}</p>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 12px;">
-                        <span style="font-size: 0.85rem; color: #888;">Kurucu: <b>{{ z.olusturan }}</b></span>
-                        <a href="{{ url_for('zumre_detay', zumre_id=z.id) }}" class="btn" style="padding: 6px 14px; font-size: 0.9rem;">Sohbete Katıl →</a>
+                <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; background: #fffaf5;">
+                    <h3 style="color: #e65c00; margin-top: 0;">{{ z.baslik }}</h3>
+                    <p style="font-size: 0.9rem; color: #555;">{{ z.aciklama }}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <span style="font-size: 0.8rem; color: #888;">Branş: {{ z.brans }}</span>
+                        <a href="{{ url_for('zumre_detay', zumre_id=z.id) }}" class="btn-orange" style="padding: 4px 10px; font-size: 0.85rem;">Sohbete Gir →</a>
                     </div>
                 </div>
             {% endfor %}
         {% else %}
-            <p style="grid-column: span 3; text-align: center; color: #888; padding: 30px;">Henüz aktif bir zümre bulunmuyor. Hemen bir tane oluşturun!</p>
+            <p style="color: #888;">Zümre bulunamadı.</p>
         {% endif %}
     </div>
 </div>

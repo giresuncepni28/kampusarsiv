@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}{{ video.baslik }}{% endblock %}
+
+{% block content %}
+<div class="box" style="max-width: 700px; margin: 0 auto;">
+    <h2 style="color: #e65c00; margin-bottom: 4px;">{{ video.baslik }}</h2>
+    <div style="font-size: 0.85rem; color: #777; margin-bottom: 10px;">
+        Yükleyen: <a href="{{ url_for('profil_goruntule', kullanici_adi=video.yazar) }}" style="font-weight: bold; color: #e65c00;">{{ video.yazar }}</a> | Tarih: {{ video.tarih }} | İzlenme: {{ video.izlenme }}
+    </div>
+
+    <div class="video-box">
+        <video controls autoplay>
+            <source src="{{ video.video_dosya }}" type="video/mp4">
+            Tarayıcınız video etiketini desteklemiyor.
+        </video>
+    </div>
+
+    <p style="margin-top: 15px; font-size: 1rem; color: #333; line-height: 1.5;">{{ video.aciklama }}</p>
+    <a href="{{ url_for('videolar') }}" class="btn-orange" style="background: #718096; margin-top: 15px; display: inline-block;">← Video Listesine Dön</a>
+</div>
+{% endblock %}
